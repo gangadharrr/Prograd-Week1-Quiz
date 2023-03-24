@@ -3,7 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.Contracts;
+using System.Diagnostics.Metrics;
+using System.Drawing;
 using System.Net.NetworkInformation;
+using System.Runtime.ConstrainedExecution;
 using System.Runtime.InteropServices;
 
 namespace Prograd_Week1_Quiz
@@ -11,56 +14,120 @@ namespace Prograd_Week1_Quiz
 
     public class Dispenser
     {
-        public int totalChocolates = 0;
+        public int totalChocolates = 28;
         public Dictionary<string, int> chocolatesColors = new Dictionary<string, int>()
         {
-            { "green", 0 },
-            { "silver", 0 },
-            { "blue",0},
-            { "crimson",0},
-            { "purple",0},
-            { "red",0},
-            { "pink",0}
+            { "green", 2 },
+            { "silver", 1 },
+            { "blue",3},
+            { "crimson",4},
+            { "purple",5},
+            { "red",6},
+            { "pink",7}
         };
-
-  
-
         public void addChocolates(string color, int count)
         {
-            this.chocolatesColors[color] += count;
+            chocolatesColors[color] += count;
+            totalChocolates += count;
         }
         public void removeChocolateOfColor(string color) 
         {
-                this.chocolatesColors[color]--;
+                chocolatesColors[color]--;
+                totalChocolates--;
         }
-        public Dictionary<string, int> removeChocolates(int count)
+        public int removeChocolates(int count)
         {
-            Dictionary <string,int> result = new Dictionary<string,int>();
-            foreach(KeyValuePair<string, int> item in result) 
+            int temp = count; 
+            Dictionary<string, int> result = new Dictionary<string, int>();
+            while (count > 0)
             {
-                result[item.Key] = (result.TryGetValue(item.Key, out var value) ? value : 0) + 1;
+                foreach (KeyValuePair<string, int> item in result)
+                {
+                    result[item.Key] = (result.TryGetValue(item.Key, out var value) ? value : 0) + 1;
+                    this.chocolatesColors[item.Key]--;
+                    totalChocolates--;
+                    count--;
+                    if (count == 0) break;
+                }
+                if (count == 0) break;
             }
+            return temp;
         }
-        public List<int> dispenseChocolates()
+        public int dispenseChocolates(int count)
         {
+            int temp = count;
+            Dictionary<string, int> result = new Dictionary<string, int>();
+            while (count > 0)
+            {
+                foreach (KeyValuePair<string, int> item in result)
+                {
+                    result[item.Key] = (result.TryGetValue(item.Key, out var value) ? value : 0) + 1;
+                    this.chocolatesColors[item.Key]--;
+                    totalChocolates--;
+                    count--;
+                    if (count == 0) break;
+                }
+                if (count == 0) break;
+            }
+            return temp;
         }
-        //[green, silver, blue, crimson, purple, red, pink]
-        public Dictionary<string, int> dispenseChocolatesOfColor()
+        
+        public Dictionary<string, int> dispenseChocolatesOfColor(string color, int count)
         {
+            Dictionary<string, int> result = new Dictionary<string, int>();
+            
+                 result[color] = count;
+                    chocolatesColors[color]-=count;
+            totalChocolates -= count;
+            return result;
+
         }
         public void noOfChocolates()
         {
-
-        }
-        public List<int> dispenseRainbowChocolates()
-        { }
+            foreach (KeyValuePair<string, int> item in chocolatesColors)
+            {
+                Console.WriteLine($"{item.Key},{item.Value}");
             }
+        }
+        public void changeChocolateColor(int count, string color, string finalColor)
+        {
+            chocolatesColors[color]-= count;
+            chocolatesColors[finalColor]+= count;
+        }
+        public Dictionary<string,int> dispenseRainbowChocolates(int count)
+        {
+
+            Dictionary<string, int> result = new Dictionary<string, int>();
+            while (count > 0) {
+                foreach (KeyValuePair<string, int> item in result)
+                {
+                    result[item.Key] = (result.TryGetValue(item.Key, out var value) ? value : 0) + (count > 3 ? 3 : count);
+                    chocolatesColors[item.Key] -= (count > 3 ? 3 : count);
+                    totalChocolates -= (count > 3 ? 3 : count);
+                    count -= (count > 3 ? 3 : count);
+                    if (count == 0) break;
+                }
+                if (count == 0) break;
+            }
+            return result;
+        }
+        public List <string> sortChocolateBasedOnCount() { 
+            var list = new Stack<string>();
+            foreach (KeyValuePair<string, int> item in chocolatesColors.OrderBy(x => x.Value)) 
+            {
+                list.Push(item.Key);
+            }
+            return list.ToList();    
+        }
+    }
     public class ChocolateMachine
     {
         
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            Dispenser dm= new Dispenser();
+            var list=dm.sortChocolateBasedOnCount();
+            Console.WriteLine($"[{string.Join(", ",list)}]");
         }
     }
 }
